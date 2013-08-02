@@ -138,7 +138,7 @@ QStringList header;
 //! [4]
     QGraphicsView view(&scene);
     view.setRenderHint(QPainter::Antialiasing);
-    view.setBackgroundBrush(QPixmap(":images/cheese.jpg"));
+    view.setBackgroundBrush(QPixmap("../ressources/images/cheese.jpg"));
 //! [4] //! [5]
     view.setCacheMode(QGraphicsView::CacheBackground);
     view.setViewportUpdateMode(QGraphicsView::BoundingRectViewportUpdate);

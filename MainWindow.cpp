@@ -45,6 +45,7 @@ void MainWindow::createToolBars()
 {
     mToolbar = QSharedPointer<QToolBar>(new QToolBar());
     mPlayAction = QSharedPointer<QAction>(new QAction("Play",mToolbar.data()));
+    mPlayAction->setIcon(QIcon(":/images/play_black.png"));
     mOpenAction = QSharedPointer<QAction>(new QAction("Open",mToolbar.data()));
     mSpeedController = QSharedPointer<QSpinBox>(new QSpinBox(this));
     mSpeedController->setValue(mSpeed);
@@ -146,15 +147,18 @@ void MainWindow::play()
         mTimer->stop();
         mPlayAction->setText("Resume");
         mStatusBar->showMessage(tr("Paused!"));
+        mPlayAction->setIcon(QIcon(":/images/play_black.png"));
         mOpenAction->setEnabled(true);
     } else if (state == "Resume") {
         mTimer->start(1000.0/mSpeed);
         mPlayAction->setText("Pause");
+        mPlayAction->setIcon(QIcon(":/images/pause_black.png"));
         mStatusBar->showMessage(tr("Playing!"));
         mOpenAction->setEnabled(false);
     } else if (state == "Play") {
         mStatusBar->showMessage(tr("Playing!"));
         mPlayAction->setText("Pause");
+        mPlayAction->setIcon(QIcon(":/images/pause_black.png"));
         mTimer->start(1000.0/mSpeed);
         mOpenAction->setEnabled(false);
     }

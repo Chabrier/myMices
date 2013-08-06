@@ -28,7 +28,7 @@ void MainWindow::createGraphicView()
     mScene->setSceneRect(-300, -300, 600, 600);
     mScene->setItemIndexMethod(QGraphicsScene::NoIndex);
     mGraphicalView->setRenderHint(QPainter::Antialiasing);
-    mGraphicalView->setBackgroundBrush(QPixmap("../ressources/images/cheese.jpg"));
+    mGraphicalView->setBackgroundBrush(QPixmap(":/images/cheese.jpg"));
 
     mGraphicalView->setCacheMode(QGraphicsView::CacheBackground);
     mGraphicalView->setViewportUpdateMode(QGraphicsView::BoundingRectViewportUpdate);
@@ -170,4 +170,3 @@ void MainWindow::resetView()
     mPositionList.clear();
     mScene->clear();
 }
-

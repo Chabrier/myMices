@@ -19,9 +19,9 @@ set(SRC main.cpp mouse.cpp MainWindow.cpp)
 set(HEADERS main.h mouse.h MainWindow.hpp)
 set(RESOURCES mice.qrc)
 
-add_executable(myMouse ${SRC})
+qt5_add_resources(QT_RESSOURCES ${RESOURCES})
+add_executable(myMouse ${SRC} ${QT_RESSOURCES})
 qt5_use_modules(myMouse Core Widgets)
 
 install (TARGETS myMouse DESTINATION bin)
 install (FILES ${HEADERS} DESTINATION include)
-install (DIRECTORY images DESTINATION ressources)

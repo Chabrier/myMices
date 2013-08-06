@@ -154,12 +154,15 @@ void MainWindow::play()
 void MainWindow::open()
 {
     QString path = QFileDialog::getOpenFileName(this);
-    QFile logFile(path);
-    resetView();
-    loadFile(logFile);
-    mStatusBar->showMessage(tr("Ready!"));
-    mPlayAction->setText("Play");
-    mPlayAction->setEnabled(true);
+
+    if(path != "") {
+        QFile logFile(path);
+        resetView();
+        loadFile(logFile);
+        mStatusBar->showMessage(tr("Ready!"));
+        mPlayAction->setText("Play");
+        mPlayAction->setEnabled(true);
+    }
 }
 
 void MainWindow::resetView()

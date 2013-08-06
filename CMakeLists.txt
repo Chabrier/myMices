@@ -15,8 +15,8 @@ SET(CMAKE_INCLUDE_CURRENT_DIR ON)
 include_directories(${Qt5Widgets_INCLUDES})
 add_definitions(${Qt5Widgets_DEFINITIONS})
 
-set(SRC main.cpp mouse.cpp)
-set(HEADERS main.h mouse.h)
+set(SRC main.cpp mouse.cpp MainWindow.cpp)
+set(HEADERS main.h mouse.h MainWindow.hpp)
 set(RESOURCES mice.qrc)
 
 add_executable(myMouse ${SRC})

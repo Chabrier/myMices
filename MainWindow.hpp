@@ -9,6 +9,7 @@
 #include <QAction>
 #include <QFile>
 #include <QStatusBar>
+#include <QSpinBox>
 
 class MainWindow : public QMainWindow
 {
@@ -33,12 +34,15 @@ private:
     QSharedPointer<QToolBar>        mToolbar;
     QSharedPointer<QAction>         mPlayAction;
     QSharedPointer<QAction>         mOpenAction;
+    QSharedPointer<QSpinBox>  mSpeedController;
     QSharedPointer<QTimer>          mTimer;
     QSharedPointer<QStatusBar>      mStatusBar;
 
     ScenePosList mPositionList;
+    int mSpeed;
 private slots:
     void play();
     void open();
+    void speedChanged(int d);
 };
 #endif

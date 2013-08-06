@@ -11,7 +11,7 @@
 const int MainWindow::cMouseCount = 7;
 
 MainWindow::MainWindow()
-:mTimer(new QTimer())
+:mTimer(new QTimer()),mSpeed(30)
 {
     createGraphicView();
     createToolBars();
@@ -46,16 +46,25 @@ void MainWindow::createToolBars()
     mToolbar = QSharedPointer<QToolBar>(new QToolBar());
     mPlayAction = QSharedPointer<QAction>(new QAction("Play",mToolbar.data()));
     mOpenAction = QSharedPointer<QAction>(new QAction("Open",mToolbar.data()));
+    mSpeedController = QSharedPointer<QSpinBox>(new QSpinBox(this));
+    mSpeedController->setValue(mSpeed);
+    mSpeedController->setMinimumWidth(110);
+    mSpeedController->setSuffix("fps");
+    mSpeedController->setMinimum(1);
+    mSpeedController->setMaximum(1000);
+    mSpeedController->setAlignment(Qt::AlignRight);
     mPlayAction->setEnabled(false);
     mToolbar->addAction(mOpenAction.data());
     mToolbar->addAction(mPlayAction.data());
-
+    mToolbar->addWidget(mSpeedController.data());
     addToolBar(mToolbar.data());
 
     QObject::connect(mOpenAction.data(), SIGNAL(triggered()), this,
                      SLOT(open()));
     QObject::connect(mPlayAction.data(), SIGNAL(triggered()), this,
                      SLOT(play()));
+    QObject::connect(mSpeedController.data(), SIGNAL(valueChanged(int)), this,
+                     SLOT(speedChanged(int)));
 }
 
 void MainWindow::createStatusBar()
@@ -139,14 +148,14 @@ void MainWindow::play()
         mStatusBar->showMessage(tr("Paused!"));
         mOpenAction->setEnabled(true);
     } else if (state == "Resume") {
-        mTimer->start(1000 / 33);
+        mTimer->start(1000.0/mSpeed);
         mPlayAction->setText("Pause");
         mStatusBar->showMessage(tr("Playing!"));
         mOpenAction->setEnabled(false);
     } else if (state == "Play") {
         mStatusBar->showMessage(tr("Playing!"));
         mPlayAction->setText("Pause");
-        mTimer->start(1000 / 33);
+        mTimer->start(1000.0/mSpeed);
         mOpenAction->setEnabled(false);
     }
 }
@@ -170,3 +179,11 @@ void MainWindow::resetView()
     mPositionList.clear();
     mScene->clear();
 }
+
+void MainWindow::speedChanged(int d)
+{
+    mTimer->stop();
+    mSpeed = d;
+    mTimer->start(1000.0/mSpeed);
+}
+

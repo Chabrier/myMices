@@ -11,11 +11,13 @@
 const int MainWindow::cMouseCount = 7;
 
 MainWindow::MainWindow()
-:mTimer(new QTimer()),
+:mTimer(new QTimer(this)),
 mSpeed(30),
 mZoomValue(100),
 mZoomOldValue(100),
-mPlayingState(IDLE)
+mPlayingState(IDLE),
+mFrameNumber(0),
+mCurrentFrame(0)
 {
     createGraphicView();
     createToolBars();
@@ -26,9 +28,8 @@ mPlayingState(IDLE)
 
 void MainWindow::createGraphicView()
 {
-    mScene = QSharedPointer<QGraphicsScene>(new QGraphicsScene());
-    mGraphicalView = QSharedPointer<QGraphicsView>(
-                                              new QGraphicsView(mScene.data()));
+    mScene = new QGraphicsScene(this);
+    mGraphicalView = new QGraphicsView(mScene);
 
     mScene->setSceneRect(-300, -300, 600, 600);
     mScene->setItemIndexMethod(QGraphicsScene::NoIndex);
@@ -40,19 +41,21 @@ void MainWindow::createGraphicView()
     mGraphicalView->setDragMode(QGraphicsView::ScrollHandDrag);
 
     mGraphicalView->resize(400, 300);
-    setCentralWidget(mGraphicalView.data());
+    setCentralWidget(mGraphicalView);
 
-    QObject::connect(mTimer.data(), SIGNAL(timeout()),
-                     mScene.data(), SLOT(advance()));
+    QObject::connect(mTimer, SIGNAL(timeout()),
+                     mScene, SLOT(advance()));
+    QObject::connect(mTimer, SIGNAL(timeout()),
+                     this, SLOT(timerTic()));
 }
 
 void MainWindow::createToolBars()
 {
-    mToolbar = QSharedPointer<QToolBar>(new QToolBar(this));
-    mPlayAction = QSharedPointer<QAction>(new QAction(mToolbar.data()));
+    mToolbar = new QToolBar(this);
+    mPlayAction = new QAction(mToolbar);
     mPlayAction->setIcon(QIcon(":/images/play_black.png"));
-    mOpenAction = QSharedPointer<QAction>(new QAction("Open",mToolbar.data()));
-    mSpeedController = QSharedPointer<QSpinBox>(new QSpinBox(mToolbar.data()));
+    mOpenAction = new QAction("Open",mToolbar);
+    mSpeedController = new QSpinBox(mToolbar);
     mSpeedController->setValue(mSpeed);
     mSpeedController->setMinimumWidth(110);
     mSpeedController->setSuffix("fps");
@@ -60,7 +63,7 @@ void MainWindow::createToolBars()
     mSpeedController->setMaximum(1000);
     mSpeedController->setAlignment(Qt::AlignRight);
 
-    mZoomController = QSharedPointer<QSpinBox>(new QSpinBox(mToolbar.data()));
+    mZoomController = new QSpinBox(mToolbar);
     mZoomController->setValue(mZoomValue);
     mZoomController->setMinimumWidth(110);
     mZoomController->setSuffix("%");
@@ -68,31 +71,38 @@ void MainWindow::createToolBars()
     mZoomController->setMaximum(1000);
     mZoomController->setAlignment(Qt::AlignRight);
 
-    mToolbar->addAction(mOpenAction.data());
+    mToolbar->addAction(mOpenAction);
     mToolbar->addSeparator();
-    mToolbar->addAction(mPlayAction.data());
+    mToolbar->addAction(mPlayAction);
     mToolbar->addSeparator();
-    mToolbar->addWidget(new QLabel("Speed:", mToolbar.data()));
-    mToolbar->addWidget(mSpeedController.data());
+    mToolbar->addWidget(new QLabel("Speed:", mToolbar));
+    mToolbar->addWidget(mSpeedController);
     mToolbar->addSeparator();
-    mToolbar->addWidget(new QLabel("Zoom:", mToolbar.data()));
-    mToolbar->addWidget(mZoomController.data());
-    addToolBar(mToolbar.data());
+    mToolbar->addWidget(new QLabel("Zoom:", mToolbar));
+    mToolbar->addWidget(mZoomController);
+    addToolBar(mToolbar);
 
-    QObject::connect(mOpenAction.data(), SIGNAL(triggered()), this,
+    QObject::connect(mOpenAction, SIGNAL(triggered()), this,
                      SLOT(open()));
-    QObject::connect(mPlayAction.data(), SIGNAL(triggered()), this,
+    QObject::connect(mPlayAction, SIGNAL(triggered()), this,
                      SLOT(play()));
-    QObject::connect(mSpeedController.data(), SIGNAL(valueChanged(int)), this,
+    QObject::connect(mSpeedController, SIGNAL(valueChanged(int)), this,
                      SLOT(speedChanged(int)));
-    QObject::connect(mZoomController.data(), SIGNAL(valueChanged(int)), this,
+    QObject::connect(mZoomController, SIGNAL(valueChanged(int)), this,
                      SLOT(zoomChanged(int)));
 }
 
 void MainWindow::createStatusBar()
 {
-    mStatusBar = QSharedPointer<QStatusBar>(new QStatusBar());
-    setStatusBar(mStatusBar.data());
+    mStatusBar = new QStatusBar(this);
+    mProgressBar = new QProgressBar(mStatusBar);
+    mProgressBar->setRange(0,100);
+    mProgressBar->setValue(0);
+    mStatusBar->addPermanentWidget(mProgressBar);
+    setStatusBar(mStatusBar);
+
+    QObject::connect(this, SIGNAL(incrementProgressBar(int)), mProgressBar,
+                 SLOT(setValue(int)));
 }
 
 void MainWindow::loadFile(QFile &file)
@@ -131,7 +141,7 @@ void MainWindow::loadFile(QFile &file)
                 QString y = xy.at(1);
                 mPositionList[header.at(i - 1)].push_back(QPointF(x.toDouble(), y.toDouble()));
             }
-
+            mFrameNumber = mPositionList[header.at(0)].size();
         }
 
         i.toFront();
@@ -165,6 +175,9 @@ void MainWindow::loadFile(QFile &file)
 
 void MainWindow::play()
 {
+    if (mPlayingState == RESET)
+        mCurrentFrame = 0;
+
     if (mPlayingState == PLAY) {
         mPlayingState = PAUSE;
         setSceneState(PAUSE);
@@ -217,6 +230,7 @@ void MainWindow::setSceneState(sceneState state)
             mPlayAction->setText("Play");
             mPlayAction->setEnabled(true);
             mPlayAction->setIcon(QIcon(":/images/play_black.png"));
+            mProgressBar->setValue(0);
         break;
         case IDLE:
             mTimer->stop();
@@ -233,6 +247,7 @@ void MainWindow::setSceneState(sceneState state)
             }
             mOpenAction->setEnabled(true);
             mPlayAction->setIcon(QIcon(":/images/reset_black.png"));
+            mStatusBar->showMessage(tr("Launch again?"));
         break;
         case PLAY:
             mTimer->start(1000.0/mSpeed);
@@ -253,7 +268,15 @@ void MainWindow::setSceneState(sceneState state)
 
 void MainWindow::animationFinished()
 {
+    mTimer->stop();
     mPlayingState = RESET;
     setSceneState(RESET);
 }
 
+void MainWindow::timerTic()
+{
+    ++mCurrentFrame;
+    qDebug() << "[DEBUG]" <<  mCurrentFrame << "/" << mFrameNumber;
+    emit incrementProgressBar(
+                             (mCurrentFrame/(double)mFrameNumber) * 100);
+}

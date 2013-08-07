@@ -10,6 +10,7 @@
 #include <QFile>
 #include <QStatusBar>
 #include <QSpinBox>
+#include <QProgressBar>
 #include <Mouse.hpp>
 
 class MainWindow : public QMainWindow
@@ -33,27 +34,33 @@ private:
     typedef QMapIterator<QString, posList> ScenePosListIt;
     static const int cMouseCount;
 
-    QSharedPointer<QGraphicsScene>  mScene;
-    QSharedPointer<QGraphicsView>   mGraphicalView;
-    QSharedPointer<QToolBar>        mToolbar;
-    QSharedPointer<QAction>         mPlayAction;
-    QSharedPointer<QAction>         mOpenAction;
-    QSharedPointer<QSpinBox>        mSpeedController;
-    QSharedPointer<QSpinBox>        mZoomController;
-    QSharedPointer<QTimer>          mTimer;
-    QSharedPointer<QStatusBar>      mStatusBar;
-    QVector<Mouse*>                 mMices;
+    QGraphicsScene  *mScene;
+    QGraphicsView   *mGraphicalView;
+    QToolBar        *mToolbar;
+    QAction         *mPlayAction;
+    QAction         *mOpenAction;
+    QSpinBox        *mSpeedController;
+    QSpinBox        *mZoomController;
+    QTimer          *mTimer;
+    QProgressBar    *mProgressBar;
+    QStatusBar      *mStatusBar;
+    QVector<Mouse*> mMices;
 
     ScenePosList mPositionList;
     int mSpeed;
     int mZoomValue;
     int mZoomOldValue;
     sceneState mPlayingState;
+    int mFrameNumber;
+    int mCurrentFrame;
 private slots:
     void play();
     void open();
     void speedChanged(int d);
     void zoomChanged(int d);
     void animationFinished();
+    void timerTic();
+signals:
+    void incrementProgressBar(int);
 };
 #endif

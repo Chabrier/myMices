@@ -5,13 +5,14 @@
 #include <QTextStream>
 #include <QStringList>
 #include <QTime>
+#include <QLabel>
 #include <mouse.h>
 #include <math.h>
 #include <QDebug>
 const int MainWindow::cMouseCount = 7;
 
 MainWindow::MainWindow()
-:mTimer(new QTimer()),mSpeed(30)
+:mTimer(new QTimer()),mSpeed(30),mZoomValue(100),mZoomOldValue(100)
 {
     createGraphicView();
     createToolBars();
@@ -43,21 +44,36 @@ void MainWindow::createGraphicView()
 
 void MainWindow::createToolBars()
 {
-    mToolbar = QSharedPointer<QToolBar>(new QToolBar());
+    mToolbar = QSharedPointer<QToolBar>(new QToolBar(this));
     mPlayAction = QSharedPointer<QAction>(new QAction("Play",mToolbar.data()));
     mPlayAction->setIcon(QIcon(":/images/play_black.png"));
     mOpenAction = QSharedPointer<QAction>(new QAction("Open",mToolbar.data()));
-    mSpeedController = QSharedPointer<QSpinBox>(new QSpinBox(this));
+    mSpeedController = QSharedPointer<QSpinBox>(new QSpinBox(mToolbar.data()));
     mSpeedController->setValue(mSpeed);
     mSpeedController->setMinimumWidth(110);
     mSpeedController->setSuffix("fps");
     mSpeedController->setMinimum(1);
     mSpeedController->setMaximum(1000);
     mSpeedController->setAlignment(Qt::AlignRight);
+
+    mZoomController = QSharedPointer<QSpinBox>(new QSpinBox(mToolbar.data()));
+    mZoomController->setValue(mZoomValue);
+    mZoomController->setMinimumWidth(110);
+    mZoomController->setSuffix("%");
+    mZoomController->setMinimum(1);
+    mZoomController->setMaximum(1000);
+    mZoomController->setAlignment(Qt::AlignRight);
+
     mPlayAction->setEnabled(false);
     mToolbar->addAction(mOpenAction.data());
+    mToolbar->addSeparator();
     mToolbar->addAction(mPlayAction.data());
+    mToolbar->addSeparator();
+    mToolbar->addWidget(new QLabel("Speed:", mToolbar.data()));
     mToolbar->addWidget(mSpeedController.data());
+    mToolbar->addSeparator();
+    mToolbar->addWidget(new QLabel("Zoom:", mToolbar.data()));
+    mToolbar->addWidget(mZoomController.data());
     addToolBar(mToolbar.data());
 
     QObject::connect(mOpenAction.data(), SIGNAL(triggered()), this,
@@ -66,6 +82,8 @@ void MainWindow::createToolBars()
                      SLOT(play()));
     QObject::connect(mSpeedController.data(), SIGNAL(valueChanged(int)), this,
                      SLOT(speedChanged(int)));
+    QObject::connect(mZoomController.data(), SIGNAL(valueChanged(int)), this,
+                     SLOT(zoomChanged(int)));
 }
 
 void MainWindow::createStatusBar()
@@ -189,5 +207,11 @@ void MainWindow::speedChanged(int d)
     mTimer->stop();
     mSpeed = d;
     mTimer->start(1000.0/mSpeed);
+}
+
+void MainWindow::zoomChanged(int d)
+{
+    mGraphicalView->scale(d/(double)(mZoomOldValue),d/(double)(mZoomOldValue));
+    mZoomOldValue = d;
 }
 

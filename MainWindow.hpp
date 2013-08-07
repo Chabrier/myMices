@@ -35,14 +35,18 @@ private:
     QSharedPointer<QAction>         mPlayAction;
     QSharedPointer<QAction>         mOpenAction;
     QSharedPointer<QSpinBox>  mSpeedController;
+    QSharedPointer<QSpinBox>  mZoomController;
     QSharedPointer<QTimer>          mTimer;
     QSharedPointer<QStatusBar>      mStatusBar;
 
     ScenePosList mPositionList;
     int mSpeed;
+    int mZoomValue;
+    int mZoomOldValue;
 private slots:
     void play();
     void open();
     void speedChanged(int d);
+    void zoomChanged(int d);
 };
 #endif

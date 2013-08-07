@@ -23,6 +23,7 @@ mCurrentFrame(0)
     createToolBars();
     createStatusBar();
     setWindowTitle("myMices");
+    setWindowIcon(QIcon(":/images/Mouse.jpg"));
     setSceneState(IDLE);
 }
 
@@ -55,6 +56,7 @@ void MainWindow::createToolBars()
     mPlayAction = new QAction(mToolbar);
     mPlayAction->setIcon(QIcon(":/images/play_black.png"));
     mOpenAction = new QAction("Open",mToolbar);
+    mOpenAction->setIcon(QIcon(":/images/open_black.png"));
     mSpeedController = new QSpinBox(mToolbar);
     mSpeedController->setValue(mSpeed);
     mSpeedController->setMinimumWidth(110);

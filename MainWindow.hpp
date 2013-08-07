@@ -21,8 +21,11 @@ protected:
     void createToolBars();
     void createStatusBar();
 private:
+    typedef enum {IDLE,PLAY,PAUSE} sceneState;
+
     void loadFile(QFile&);
     void resetView();
+    void setSceneState(sceneState);
 private:
     typedef QList<QPointF> posList;
     typedef QMap<QString, posList> ScenePosList;
@@ -43,6 +46,7 @@ private:
     int mSpeed;
     int mZoomValue;
     int mZoomOldValue;
+    sceneState mPlayingState;
 private slots:
     void play();
     void open();

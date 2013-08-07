@@ -12,12 +12,17 @@
 const int MainWindow::cMouseCount = 7;
 
 MainWindow::MainWindow()
-:mTimer(new QTimer()),mSpeed(30),mZoomValue(100),mZoomOldValue(100)
+:mTimer(new QTimer()),
+mSpeed(30),
+mZoomValue(100),
+mZoomOldValue(100),
+mPlayingState(IDLE)
 {
     createGraphicView();
     createToolBars();
     createStatusBar();
     setWindowTitle("myMices");
+    setSceneState(IDLE);
 }
 
 void MainWindow::createGraphicView()
@@ -45,7 +50,7 @@ void MainWindow::createGraphicView()
 void MainWindow::createToolBars()
 {
     mToolbar = QSharedPointer<QToolBar>(new QToolBar(this));
-    mPlayAction = QSharedPointer<QAction>(new QAction("Play",mToolbar.data()));
+    mPlayAction = QSharedPointer<QAction>(new QAction(mToolbar.data()));
     mPlayAction->setIcon(QIcon(":/images/play_black.png"));
     mOpenAction = QSharedPointer<QAction>(new QAction("Open",mToolbar.data()));
     mSpeedController = QSharedPointer<QSpinBox>(new QSpinBox(mToolbar.data()));
@@ -64,7 +69,6 @@ void MainWindow::createToolBars()
     mZoomController->setMaximum(1000);
     mZoomController->setAlignment(Qt::AlignRight);
 
-    mPlayAction->setEnabled(false);
     mToolbar->addAction(mOpenAction.data());
     mToolbar->addSeparator();
     mToolbar->addAction(mPlayAction.data());
@@ -90,7 +94,6 @@ void MainWindow::createStatusBar()
 {
     mStatusBar = QSharedPointer<QStatusBar>(new QStatusBar());
     setStatusBar(mStatusBar.data());
-    mStatusBar->showMessage(tr("Idle"));
 }
 
 void MainWindow::loadFile(QFile &file)
@@ -161,24 +164,12 @@ void MainWindow::loadFile(QFile &file)
 void MainWindow::play()
 {
     QString state = mPlayAction->text();
-    if (state == "Pause") {
-        mTimer->stop();
-        mPlayAction->setText("Resume");
-        mStatusBar->showMessage(tr("Paused!"));
-        mPlayAction->setIcon(QIcon(":/images/play_black.png"));
-        mOpenAction->setEnabled(true);
-    } else if (state == "Resume") {
-        mTimer->start(1000.0/mSpeed);
-        mPlayAction->setText("Pause");
-        mPlayAction->setIcon(QIcon(":/images/pause_black.png"));
-        mStatusBar->showMessage(tr("Playing!"));
-        mOpenAction->setEnabled(false);
-    } else if (state == "Play") {
-        mStatusBar->showMessage(tr("Playing!"));
-        mPlayAction->setText("Pause");
-        mPlayAction->setIcon(QIcon(":/images/pause_black.png"));
-        mTimer->start(1000.0/mSpeed);
-        mOpenAction->setEnabled(false);
+    if (mPlayingState == PLAY) {
+        mPlayingState = PAUSE;
+        setSceneState(PAUSE);
+    } else if (mPlayingState == PAUSE || mPlayingState == IDLE) {
+        mPlayingState = PLAY;
+        setSceneState(PLAY);
     }
 }
 
@@ -213,5 +204,34 @@ void MainWindow::zoomChanged(int d)
 {
     mGraphicalView->scale(d/(double)(mZoomOldValue),d/(double)(mZoomOldValue));
     mZoomOldValue = d;
+}
+
+void MainWindow::setSceneState(sceneState state)
+{
+    switch(state) {
+        case IDLE:
+            mTimer->stop();
+            mPlayAction->setEnabled(false);
+            mPlayAction->setText("Play");
+            mPlayAction->setIcon(QIcon(":/images/play_black.png"));
+            mStatusBar->showMessage(tr("Idle"));
+        break;
+
+        case PLAY:
+            mTimer->start(1000.0/mSpeed);
+            mPlayAction->setText("Pause");
+            mPlayAction->setIcon(QIcon(":/images/pause_black.png"));
+            mStatusBar->showMessage(tr("Playing!"));
+            mOpenAction->setEnabled(false);
+        break;
+        case PAUSE:
+            mTimer->stop();
+            mPlayAction->setText("Resume");
+            mStatusBar->showMessage(tr("Paused!"));
+            mPlayAction->setIcon(QIcon(":/images/play_black.png"));
+            mOpenAction->setEnabled(true);
+        break;
+
+    }
 }
 

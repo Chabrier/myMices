@@ -52,5 +52,6 @@ private slots:
     void open();
     void speedChanged(int d);
     void zoomChanged(int d);
+    void animationFinished();
 };
 #endif

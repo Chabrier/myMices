@@ -2,7 +2,7 @@
 
 #include <math.h>
 
-#include "mouse.h"
+#include <Mouse.hpp>
 
 typedef QList<QPointF> posList;
 typedef QMap<QString, posList> ScenePosList;

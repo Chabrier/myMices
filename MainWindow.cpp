@@ -6,7 +6,7 @@
 #include <QStringList>
 #include <QTime>
 #include <QLabel>
-#include <mouse.h>
+#include <Mouse.hpp>
 #include <math.h>
 #include <QDebug>
 const int MainWindow::cMouseCount = 7;
@@ -158,6 +158,9 @@ void MainWindow::loadFile(QFile &file)
 
         mouse->setData(0,QVariant(mouseName));
         mScene->addItem(mouse);
+
+        QObject::connect(mouse, SIGNAL(animationFinished()),
+                     this, SLOT(animationFinished()));
     }
 }
 
@@ -213,6 +216,7 @@ void MainWindow::setSceneState(sceneState state)
     switch(state) {
         case IDLE:
             mTimer->stop();
+            mOpenAction->setEnabled(true);
             mPlayAction->setEnabled(false);
             mPlayAction->setText("Play");
             mPlayAction->setIcon(QIcon(":/images/play_black.png"));
@@ -235,5 +239,11 @@ void MainWindow::setSceneState(sceneState state)
         break;
 
     }
+}
+
+void MainWindow::animationFinished()
+{
+    resetView();
+    setSceneState(IDLE);
 }
 

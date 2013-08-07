@@ -38,7 +38,7 @@
 **
 ****************************************************************************/
 
-#include "mouse.h"
+#include <Mouse.hpp>
 
 #include <QGraphicsScene>
 #include <QPainter>
@@ -63,9 +63,9 @@ static qreal normalizeAngle(qreal angle)
 
 //! [0]
 Mouse::Mouse()
-    : angle(0), speed(0), mouseEyeDirection(0),
+    : QObject(),angle(0), speed(0), mouseEyeDirection(0),
       color(qrand() % 256, qrand() % 256, qrand() % 256),
-      mPosList(0), mI(0), mReplay(false)
+      mPosList(0), mI(0), mReplay(false),finished(false)
 {
     setRotation(qrand() % (360 * 16));
     t.start();
@@ -73,7 +73,7 @@ Mouse::Mouse()
 
 //! [0]
 Mouse::Mouse(posList* poslist)
-    : angle(0), speed(0), mouseEyeDirection(0),
+    : QObject(),angle(0), speed(0), mouseEyeDirection(0),
       color(qrand() % 256, qrand() % 256, qrand() % 256),
       mPosList(poslist), mI(0), mReplay(true)
 {
@@ -146,6 +146,9 @@ void Mouse::advance(int step)
             setPos(mPosList->at(mI));
             std::cout << mPosList->at(mI).x() << "---" << mPosList->at(mI).y() << "---" << x() << "---" << y() << std::endl;
             mI++;
+        } else {
+            finished = true;
+            emit animationFinished();
         }
     } else {
 //! [4]

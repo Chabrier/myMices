@@ -197,7 +197,9 @@ void MainWindow::speedChanged(int d)
 {
     mTimer->stop();
     mSpeed = d;
-    mTimer->start(1000.0/mSpeed);
+    if (mPlayingState == PLAY) {
+        mTimer->start(1000.0/mSpeed);
+    }
 }
 
 void MainWindow::zoomChanged(int d)

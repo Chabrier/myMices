@@ -10,6 +10,7 @@
 #include <QFile>
 #include <QStatusBar>
 #include <QSpinBox>
+#include <Mouse.hpp>
 
 class MainWindow : public QMainWindow
 {
@@ -21,7 +22,7 @@ protected:
     void createToolBars();
     void createStatusBar();
 private:
-    typedef enum {IDLE,PLAY,PAUSE} sceneState;
+    typedef enum {IDLE,PLAY,PAUSE,RESET,READY} sceneState;
 
     void loadFile(QFile&);
     void resetView();
@@ -37,10 +38,11 @@ private:
     QSharedPointer<QToolBar>        mToolbar;
     QSharedPointer<QAction>         mPlayAction;
     QSharedPointer<QAction>         mOpenAction;
-    QSharedPointer<QSpinBox>  mSpeedController;
-    QSharedPointer<QSpinBox>  mZoomController;
+    QSharedPointer<QSpinBox>        mSpeedController;
+    QSharedPointer<QSpinBox>        mZoomController;
     QSharedPointer<QTimer>          mTimer;
     QSharedPointer<QStatusBar>      mStatusBar;
+    QVector<Mouse*>                 mMices;
 
     ScenePosList mPositionList;
     int mSpeed;

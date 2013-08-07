@@ -61,6 +61,7 @@ public:
                QWidget *widget);
 
     bool isFinished() const {return finished;}
+    void setIndex(int i) {mI = i;}
 protected:
     void advance(int step);
 

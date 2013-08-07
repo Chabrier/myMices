@@ -6,7 +6,6 @@
 #include <QStringList>
 #include <QTime>
 #include <QLabel>
-#include <Mouse.hpp>
 #include <math.h>
 #include <QDebug>
 const int MainWindow::cMouseCount = 7;
@@ -158,7 +157,7 @@ void MainWindow::loadFile(QFile &file)
 
         mouse->setData(0,QVariant(mouseName));
         mScene->addItem(mouse);
-
+        mMices.push_back(mouse);
         QObject::connect(mouse, SIGNAL(animationFinished()),
                      this, SLOT(animationFinished()));
     }
@@ -166,11 +165,12 @@ void MainWindow::loadFile(QFile &file)
 
 void MainWindow::play()
 {
-    QString state = mPlayAction->text();
     if (mPlayingState == PLAY) {
         mPlayingState = PAUSE;
         setSceneState(PAUSE);
-    } else if (mPlayingState == PAUSE || mPlayingState == IDLE) {
+    } else if (mPlayingState == PAUSE
+               || mPlayingState == IDLE
+               || mPlayingState == RESET) {
         mPlayingState = PLAY;
         setSceneState(PLAY);
     }
@@ -184,9 +184,7 @@ void MainWindow::open()
         QFile logFile(path);
         resetView();
         loadFile(logFile);
-        mStatusBar->showMessage(tr("Ready!"));
-        mPlayAction->setText("Play");
-        mPlayAction->setEnabled(true);
+        setSceneState(READY);
     }
 }
 
@@ -194,11 +192,11 @@ void MainWindow::resetView()
 {
     mPositionList.clear();
     mScene->clear();
+    mMices.clear();
 }
 
 void MainWindow::speedChanged(int d)
 {
-    mTimer->stop();
     mSpeed = d;
     if (mPlayingState == PLAY) {
         mTimer->start(1000.0/mSpeed);
@@ -214,6 +212,12 @@ void MainWindow::zoomChanged(int d)
 void MainWindow::setSceneState(sceneState state)
 {
     switch(state) {
+        case READY:
+            mStatusBar->showMessage(tr("Ready!"));
+            mPlayAction->setText("Play");
+            mPlayAction->setEnabled(true);
+            mPlayAction->setIcon(QIcon(":/images/play_black.png"));
+        break;
         case IDLE:
             mTimer->stop();
             mOpenAction->setEnabled(true);
@@ -222,7 +226,14 @@ void MainWindow::setSceneState(sceneState state)
             mPlayAction->setIcon(QIcon(":/images/play_black.png"));
             mStatusBar->showMessage(tr("Idle"));
         break;
-
+        case RESET:
+            mTimer->stop();
+            foreach(Mouse *m, mMices) {
+                m->setIndex(0);
+            }
+            mOpenAction->setEnabled(true);
+            mPlayAction->setIcon(QIcon(":/images/reset_black.png"));
+        break;
         case PLAY:
             mTimer->start(1000.0/mSpeed);
             mPlayAction->setText("Pause");
@@ -237,13 +248,12 @@ void MainWindow::setSceneState(sceneState state)
             mPlayAction->setIcon(QIcon(":/images/play_black.png"));
             mOpenAction->setEnabled(true);
         break;
-
     }
 }
 
 void MainWindow::animationFinished()
 {
-    resetView();
-    setSceneState(IDLE);
+    mPlayingState = RESET;
+    setSceneState(RESET);
 }
 

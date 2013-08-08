@@ -11,6 +11,7 @@
 #include <QStatusBar>
 #include <QSpinBox>
 #include <QProgressBar>
+#include <QSlider>
 #include <Mouse.hpp>
 
 class MainWindow : public QMainWindow
@@ -44,6 +45,7 @@ private:
     QTimer          *mTimer;
     QProgressBar    *mProgressBar;
     QStatusBar      *mStatusBar;
+    QSlider         *mPlaySlider;
     QVector<Mouse*> mMices;
 
     ScenePosList mPositionList;
@@ -60,7 +62,6 @@ private slots:
     void zoomChanged(int d);
     void animationFinished();
     void timerTic();
-signals:
-    void incrementProgressBar(int);
+    void currentFrameChanged(int);
 };
 #endif

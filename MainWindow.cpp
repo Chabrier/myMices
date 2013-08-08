@@ -73,6 +73,8 @@ void MainWindow::createToolBars()
     mZoomController->setMaximum(1000);
     mZoomController->setAlignment(Qt::AlignRight);
 
+    mPlaySlider = new QSlider(Qt::Horizontal,mToolbar);
+
     mToolbar->addAction(mOpenAction);
     mToolbar->addSeparator();
     mToolbar->addAction(mPlayAction);
@@ -82,6 +84,9 @@ void MainWindow::createToolBars()
     mToolbar->addSeparator();
     mToolbar->addWidget(new QLabel("Zoom:", mToolbar));
     mToolbar->addWidget(mZoomController);
+    mToolbar->addSeparator();
+    mToolbar->addWidget(new QLabel("Ctrl:", mToolbar));
+    mToolbar->addWidget(mPlaySlider);
     addToolBar(mToolbar);
 
     QObject::connect(mOpenAction, SIGNAL(triggered()), this,
@@ -92,19 +97,17 @@ void MainWindow::createToolBars()
                      SLOT(speedChanged(int)));
     QObject::connect(mZoomController, SIGNAL(valueChanged(int)), this,
                      SLOT(zoomChanged(int)));
+    QObject::connect(mPlaySlider, SIGNAL(valueChanged(int)), this,
+                     SLOT(currentFrameChanged(int)));
 }
 
 void MainWindow::createStatusBar()
 {
     mStatusBar = new QStatusBar(this);
     mProgressBar = new QProgressBar(mStatusBar);
-    mProgressBar->setRange(0,100);
     mProgressBar->setValue(0);
     mStatusBar->addPermanentWidget(mProgressBar);
     setStatusBar(mStatusBar);
-
-    QObject::connect(this, SIGNAL(incrementProgressBar(int)), mProgressBar,
-                 SLOT(setValue(int)));
 }
 
 void MainWindow::loadFile(QFile &file)
@@ -233,6 +236,10 @@ void MainWindow::setSceneState(sceneState state)
             mPlayAction->setEnabled(true);
             mPlayAction->setIcon(QIcon(":/images/play_black.png"));
             mProgressBar->setValue(0);
+            mProgressBar->setRange(0,mFrameNumber);
+            mPlaySlider->setValue(0);
+            mPlaySlider->setRange(0,mFrameNumber);
+            mPlaySlider->setEnabled(false);
         break;
         case IDLE:
             mTimer->stop();
@@ -241,6 +248,7 @@ void MainWindow::setSceneState(sceneState state)
             mPlayAction->setText("Play");
             mPlayAction->setIcon(QIcon(":/images/play_black.png"));
             mStatusBar->showMessage(tr("Idle"));
+            mPlaySlider->setEnabled(false);
         break;
         case RESET:
             mTimer->stop();
@@ -248,6 +256,7 @@ void MainWindow::setSceneState(sceneState state)
                 m->setIndex(0);
             }
             mOpenAction->setEnabled(true);
+            mPlaySlider->setEnabled(false);
             mPlayAction->setIcon(QIcon(":/images/reset_black.png"));
             mStatusBar->showMessage(tr("Launch again?"));
         break;
@@ -257,6 +266,7 @@ void MainWindow::setSceneState(sceneState state)
             mPlayAction->setIcon(QIcon(":/images/pause_black.png"));
             mStatusBar->showMessage(tr("Playing!"));
             mOpenAction->setEnabled(false);
+            mPlaySlider->setEnabled(true);
         break;
         case PAUSE:
             mTimer->stop();
@@ -264,6 +274,7 @@ void MainWindow::setSceneState(sceneState state)
             mStatusBar->showMessage(tr("Paused!"));
             mPlayAction->setIcon(QIcon(":/images/play_black.png"));
             mOpenAction->setEnabled(true);
+            mPlaySlider->setEnabled(false);
         break;
     }
 }
@@ -279,6 +290,15 @@ void MainWindow::timerTic()
 {
     ++mCurrentFrame;
     qDebug() << "[DEBUG]" <<  mCurrentFrame << "/" << mFrameNumber;
-    emit incrementProgressBar(
-                             (mCurrentFrame/(double)mFrameNumber) * 100);
+    mPlaySlider->setValue(mCurrentFrame);
+    mProgressBar->setValue(mCurrentFrame);
 }
+
+void MainWindow::currentFrameChanged(int d)
+{
+    mCurrentFrame = d;
+    foreach(Mouse *m, mMices) {
+        m->setIndex(d);
+    }
+}
+

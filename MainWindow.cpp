@@ -35,7 +35,8 @@ void MainWindow::createGraphicView()
     mScene->setSceneRect(-300, -300, 600, 600);
     mScene->setItemIndexMethod(QGraphicsScene::NoIndex);
     mGraphicalView->setRenderHint(QPainter::Antialiasing);
-    mGraphicalView->setBackgroundBrush(QPixmap(":/images/cheese.jpg"));
+   // mGraphicalView->setBackgroundBrush(QPixmap(":/images/cheese.jpg"));
+    mGraphicalView->setBackgroundBrush(QColor(51,51,51));
 
     mGraphicalView->setCacheMode(QGraphicsView::CacheBackground);
     mGraphicalView->setViewportUpdateMode(QGraphicsView::BoundingRectViewportUpdate);
@@ -113,6 +114,8 @@ void MainWindow::createStatusBar()
 void MainWindow::loadFile(QFile &file)
 {
     QStringList header;
+    QMap<QString,double> micesRadius;
+
     if(file.exists()) {
         file.open(QIODevice::ReadOnly | QIODevice::Text);
 
@@ -144,10 +147,35 @@ void MainWindow::loadFile(QFile &file)
                 QStringList xy = fields.at(i).split(rx, QString::SkipEmptyParts);
                 QString x = xy.at(0);
                 QString y = xy.at(1);
+                QString radius = xy.at(2);
                 mPositionList[header.at(i - 1)].push_back(QPointF(x.toDouble(), y.toDouble()));
+                micesRadius[header.at(i - 1)] = radius.toDouble();
             }
             mFrameNumber = mPositionList[header.at(0)].size();
         }
+
+        double x_min = std::numeric_limits<double>::max();
+        double x_max = -std::numeric_limits<double>::max();
+        double y_min = std::numeric_limits<double>::max();
+        double y_max = -std::numeric_limits<double>::max();
+        double radius_max = -std::numeric_limits<double>::max();
+
+        foreach(double r, micesRadius) {
+            radius_max = qMax(radius_max, r);
+        }
+
+        foreach(posList list, mPositionList) {
+            foreach(QPointF point, list) {
+                x_min = qMin(point.x()-radius_max,x_min);
+                y_min = qMin(point.y()-radius_max,y_min);
+                x_max = qMax(point.x()+radius_max,x_max);
+                y_max = qMax(point.y()+radius_max,y_max);
+            }
+        }
+        mScene->setSceneRect(x_min, y_min, x_max-x_min, y_max-y_min);
+        mGraphicalView->setSceneRect(x_min, y_min, x_max-x_min, y_max-y_min);
+        mGraphicalView->fitInView ( x_min, y_min, x_max-x_min, y_max-y_min,
+                                   Qt::KeepAspectRatio);
 
         i.toFront();
         while (i.hasNext()) {
@@ -163,12 +191,10 @@ void MainWindow::loadFile(QFile &file)
 
         Mouse *mouse;
         if(!file.exists()) {
-            mouse = new Mouse;
+            mouse = new Mouse(micesRadius[mouseName]);
         } else {
-            mouse = new Mouse(&(mPositionList[mouseName]));
+            mouse = new Mouse(&(mPositionList[mouseName]),micesRadius[mouseName]);
         }
-        mouse->setPos(sin((i * 6.28) / cMouseCount) * 200,
-        cos((i * 6.28) / cMouseCount) * 200);
 
         mouse->setData(0,QVariant(mouseName));
         mScene->addItem(mouse);

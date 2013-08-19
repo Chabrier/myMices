@@ -52,8 +52,8 @@ class Mouse : public QObject, public QGraphicsItem
 {
     Q_OBJECT
 public:
-    Mouse();
-    Mouse(posList* poslist);
+    Mouse(double radius);
+    Mouse(posList* poslist, double radius);
 
     QRectF boundingRect() const;
     QPainterPath shape() const;
@@ -76,6 +76,7 @@ private:
     int mI;
     bool mReplay;
     bool finished;
+    double mRadius;
 signals:
     void animationFinished();
 };

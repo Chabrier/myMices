@@ -1,5 +1,10 @@
 <RCC>
     <qresource prefix="/" >
         <file>images/cheese.jpg</file>
+        <file>images/pause_black.png</file>
+        <file>images/play_black.png</file>
+        <file>images/reset_black.png</file>
+        <file>images/open_black.png</file>
+        <file>images/Mouse.jpg</file>
     </qresource>
 </RCC>

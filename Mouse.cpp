@@ -38,7 +38,7 @@
 **
 ****************************************************************************/
 
-#include "mouse.h"
+#include <Mouse.hpp>
 
 #include <QGraphicsScene>
 #include <QPainter>
@@ -62,23 +62,24 @@ static qreal normalizeAngle(qreal angle)
 }
 
 //! [0]
-Mouse::Mouse()
-    : angle(0), speed(0), mouseEyeDirection(0),
+Mouse::Mouse(double radius)
+    : QObject(),angle(0), speed(0), mouseEyeDirection(0),
       color(qrand() % 256, qrand() % 256, qrand() % 256),
-      mPosList(0), mI(0), mReplay(false)
+      mPosList(0), mI(0), mReplay(false),finished(false),mRadius(radius)
 {
     setRotation(qrand() % (360 * 16));
     t.start();
 }
 
 //! [0]
-Mouse::Mouse(posList* poslist)
-    : angle(0), speed(0), mouseEyeDirection(0),
+Mouse::Mouse(posList* poslist, double radius)
+    : QObject(),angle(0), speed(0), mouseEyeDirection(0),
       color(qrand() % 256, qrand() % 256, qrand() % 256),
-      mPosList(poslist), mI(0), mReplay(true)
+      mPosList(poslist), mI(0), mReplay(true),mRadius(radius)
 {
     setRotation(qrand() % (360 * 16));
     t.start();
+    setPos(mPosList->at(0));
 }
 
 //! [1]
@@ -104,7 +105,9 @@ void Mouse::paint(QPainter *painter, const QStyleOptionGraphicsItem *, QWidget *
 {
     // Body
     painter->setBrush(color);
-    painter->drawEllipse(-10, -20, 20, 40);
+    painter->setPen(Qt::NoPen);
+    painter->drawEllipse(QPointF(0,0), mRadius,mRadius);
+    /*painter->drawEllipse(-10, -20, 20, 40);
 
     // Eyes
     painter->setBrush(Qt::white);
@@ -130,7 +133,7 @@ void Mouse::paint(QPainter *painter, const QStyleOptionGraphicsItem *, QWidget *
     path.cubicTo(5, 27, 5, 32, 0, 30);
     path.cubicTo(-5, 32, -5, 42, 0, 35);
     painter->setBrush(Qt::NoBrush);
-    painter->drawPath(path);
+    painter->drawPath(path);*/
 }
 //! [3]
 
@@ -146,6 +149,9 @@ void Mouse::advance(int step)
             setPos(mPosList->at(mI));
             std::cout << mPosList->at(mI).x() << "---" << mPosList->at(mI).y() << "---" << x() << "---" << y() << std::endl;
             mI++;
+        } else {
+            finished = true;
+            emit animationFinished();
         }
     } else {
 //! [4]

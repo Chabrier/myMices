@@ -48,17 +48,20 @@ typedef QList<QPointF> posList;
 typedef QListIterator<QPointF> posListIt;
 
 //! [0]
-class Mouse : public QGraphicsItem
+class Mouse : public QObject, public QGraphicsItem
 {
+    Q_OBJECT
 public:
-    Mouse();
-    Mouse(posList* poslist);
+    Mouse(double radius);
+    Mouse(posList* poslist, double radius);
 
     QRectF boundingRect() const;
     QPainterPath shape() const;
     void paint(QPainter *painter, const QStyleOptionGraphicsItem *option,
                QWidget *widget);
 
+    bool isFinished() const {return finished;}
+    void setIndex(int i) {mI = i;}
 protected:
     void advance(int step);
 
@@ -72,6 +75,10 @@ private:
     posList* mPosList;
     int mI;
     bool mReplay;
+    bool finished;
+    double mRadius;
+signals:
+    void animationFinished();
 };
 //! [0]
 
